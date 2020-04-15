@@ -5,8 +5,8 @@ const path = require('path');
 const fs = require('fs');
 const yargRoot = require('yargs');
 const debug = require('debug')('gh-index');
-const Table = require('cli-table');
-const github = require('./github');
+const GitHub = require('./github');
+const HIndex = require('./h-index');
 
 const createClient = ({ token, tokenFile }) => {
   let t;
@@ -16,120 +16,22 @@ const createClient = ({ token, tokenFile }) => {
   try {
     t = fs.readFileSync(tokenFile, 'utf-8').trim();
   } catch (e) {
-    console.log(`Warning: can't read token file ${tokenFile}.`);
-    console.log('Proceed in unauthorized mode.');
+    debug(`Warning: can't read token file ${tokenFile}.`);
+    debug('Proceed in unauthorized mode.');
   }
 
   const inst = axios.create({
     method: 'get',
-    baseUrl: 'https://api.github.com/',
+    baseURL: 'https://api.github.com/',
     timeout: 10000,
-    headers: t ? { Authorization: 'token ' + token } : undefined,
+    headers: t ? { Authorization: `token ${t}` } : undefined,
   });
 
-  const queue = new TaskQueue(Promise, 32);
+  const queue = new TaskQueue(Promise, 8);
   return queue.wrap((o) => {
     debug(o);
     return inst(o);
   });
-};
-
-const runAnalyze = async ({ who }, token) => {
-  const py = new Pythoness({ token });
-  const me = await py.getMe();
-  if (!who) {
-    who = [me];
-  } else if (typeof who === 'string') {
-    who = [who];
-  }
-
-  debug({ who });
-  // const res = await py.userPythoness({ user: who, publicOnly: public }, { self, star, following, followers });
-  // console.log('='.repeat(110));
-  // console.log(`Pythoness Report for ${who}`);
-  // if (self) {
-  //   console.log('='.repeat(110));
-  //   console.log('Repos:');
-  //   const tbl = new Table({
-  //     chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
-  //     head: ['Repo', 'Pythoness', 'Senate Seats', 'The House Seats'],
-  //     colWidths: [42, 25, 15, 17],
-  //   });
-  //   for (const r in res.self.repos) {
-  //     const { pythoness, s, h } = res.self.repos[r];
-  //     tbl.push([
-  //       r,
-  //       pythoness,
-  //       s,
-  //       h,
-  //     ]);
-  //   }
-  //   console.log(tbl.toString());
-  //   if (star) {
-  //     console.log('Stars:');
-  //     const tbl = new Table({
-  //       chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
-  //       head: ['Repo', 'Pythoness', 'Senate Seats', 'The House Seats'],
-  //       colWidths: [42, 25, 15, 17],
-  //     });
-  //     for (const r in res.self.stars) {
-  //       const { pythoness, s, h } = res.self.stars[r];
-  //       tbl.push([
-  //         r,
-  //         pythoness,
-  //         s,
-  //         h,
-  //       ]);
-  //     }
-  //     console.log(tbl.toString());
-  //   }
-  //   console.log(`  Senate votes: ${res.self.stat.x} House votes: ${res.self.stat.y}`);
-  //   console.log(`  Self pythoness: ${res.self.stat.pythoness}`);
-  // }
-  // if (following) {
-  //   console.log('='.repeat(110));
-  //   console.log('Following:');
-  //   const tbl = new Table({
-  //     chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
-  //     head: ['User', 'Pythoness', 'Senate Seats', 'The House Seats'],
-  //     colWidths: [42, 25, 15, 17],
-  //   });
-  //   for (const r in res.following.users) {
-  //     const { pythoness, s, h } = res.following.users[r];
-  //     tbl.push([
-  //       r,
-  //       pythoness,
-  //       s,
-  //       h,
-  //     ]);
-  //   }
-  //   console.log(tbl.toString());
-  //   console.log(`  Senate votes: ${res.following.stat.x} House votes: ${res.following.stat.y}`);
-  //   console.log(`  Following pythoness: ${res.following.stat.pythoness}`);
-  // }
-  // if (followers) {
-  //   console.log('='.repeat(110));
-  //   console.log('Followers:');
-  //   const tbl = new Table({
-  //     chars: {'mid': '', 'left-mid': '', 'mid-mid': '', 'right-mid': ''},
-  //     head: ['User', 'Pythoness', 'Senate Seats', 'The House Seats'],
-  //     colWidths: [42, 25, 15, 17],
-  //   });
-  //   for (const r in res.followers.users) {
-  //     const { pythoness, s, h } = res.followers.users[r];
-  //     tbl.push([
-  //       r,
-  //       pythoness,
-  //       s,
-  //       h,
-  //     ]);
-  //   }
-  //   console.log(tbl.toString());
-  //   console.log(`  Senate votes: ${res.followers.stat.x} House votes: ${res.followers.stat.y}`);
-  //   console.log(`  Following pythoness: ${res.followers.stat.pythoness}`);
-  // }
-  // console.log('='.repeat(110));
-  // console.log(`The Final Pythoness of ${who} is: ${res.pythoness}`);
 };
 
 const debugging = (f) => (argv) => {
@@ -147,7 +49,7 @@ module.exports = yargRoot
   .strict()
   .option('token-file', {
     describe: 'Github token file for full control of private repos, see https://github.com/settings/tokens',
-    default: path.join(os.homedir(), '.pythoness'),
+    default: path.join(os.homedir(), '.gh-index'),
     type: 'string',
   })
   .option('t', {
@@ -156,25 +58,21 @@ module.exports = yargRoot
     type: 'string',
   })
   .conflicts('t', 'token-file')
-  .command(['show-limit', '$0'], 'Show GitHub API usage and limit', (yargs) => {
-  }, debugging(async (argv) => {
-    const run = createClient(argv);
-    const { data } = await github.getRateLimit(run);
+  .command(['show-limit', '$0'], 'Show GitHub API usage and limit', () => {}, debugging(async (argv) => {
+    const github = new GitHub(createClient(argv));
+    const { data } = await github.getRateLimit();
     function fix(o) {
       const r = {};
-      for (let k in o) {
-        if (k === 'reset')
-          r[k] = new Date(o[k] * 1000);
-        else if (typeof o[k] === 'object')
-          r[k] = fix(o[k]);
-        else
-          r[k] = o[k];
-      }
+      Object.keys(o).forEach((k) => {
+        if (k === 'reset') r[k] = new Date(o[k] * 1000);
+        else if (typeof o[k] === 'object') r[k] = fix(o[k]);
+        else r[k] = o[k];
+      });
       return r;
     }
     console.log(fix(data));
-  })
-  .command(['analyze [<who>...]', '$0'], 'Calculate h-index of a Github user', (yargs) => {
+  }))
+  .command(['analyze [who..]', '$0'], 'Calculate h-index of Github users', (yargs) => {
     yargs
       .option('a', {
         alias: 'all',
@@ -182,20 +80,57 @@ module.exports = yargRoot
         type: 'boolean',
         default: false,
       })
+      .option('j', {
+        alias: 'json',
+        describe: 'Show in json format',
+        type: 'boolean',
+        default: false,
+      })
       .positional('who', {
         describe: 'Github username or \'<username>/friends\'',
         type: 'string',
       });
-  }, (argv) => {
-    const token = readToken(argv);
-    runCheck(argv, token).catch((e) => {
-      debug(e);
-      console.error(e.message);
-      if (e.response) {
-        console.error(e.response.data);
-      }
-      process.exit(1);
+  }, debugging(async (argv) => {
+    const github = new GitHub(createClient(argv));
+    const calc = new HIndex(argv.all);
+    await github.requires(0);
+    let { who } = argv;
+    if (!Array.isArray(who)) who = [who];
+    const me = who.includes('/friends') || who.includes(undefined) ? await github.getMe() : undefined;
+    who = who.map((w) => {
+      if (w === undefined) return { username: me, friends: false };
+      if (w === '/friends') return { username: me, friends: true };
+      if (!w.endsWith('/friends')) return { username: w, friends: false };
+      return { username: w.split('/')[0], friends: true };
     });
-  })
+    debug(who);
+
+    who = (await Promise.all(who.map(async ({ username, friends }) => {
+      const s = [{ username }];
+      if (!friends) return s;
+      const [fr, fg] = await Promise.all([
+        github.getFollowers(username),
+        github.getFollowing(username),
+      ]);
+      const proc = (f) => f.map((login) => ({
+        username: login,
+        of: username,
+      }));
+      return s.concat(proc(fr), proc(fg));
+    }))).reduce((ws, w) => ws.concat(w), []);
+    debug(who);
+
+    await Promise.all(who.map(async (o) => {
+      const { username } = o;
+      const repos = await github.getRepos(username);
+      Object.assign(o, { result: calc.run(repos) });
+      debug(o);
+    }));
+
+    who.sort((a, b) => a.h - b.h);
+
+    if (argv.json) console.log(JSON.stringify(who, null, 2));
+    else console.log(calc.format(who));
+  }))
   .help()
   .parse;

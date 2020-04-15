@@ -24,7 +24,7 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.19.2",
-    "cli-table": "^0.3.1",
+    "cli-table3": "^0.6.0",
     "cwait": "^1.1.2",
     "debug": "^4.1.1",
     "h-index": "^1.1.0",
