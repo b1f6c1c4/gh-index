@@ -1,3 +1,6 @@
+# Cache
+.cache
+
 # Artifact
 node_modules
 coverage

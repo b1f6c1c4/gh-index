@@ -20,7 +20,7 @@ class GitHub {
   }
 
   getRateLimit() {
-    return this.run({ method: 'get', url: '/rate_limit' });
+    return this.run({ method: 'get', url: '/rate_limit', headers: undefined });
   }
 
   async requires(n) {

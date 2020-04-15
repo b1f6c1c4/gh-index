@@ -7,6 +7,7 @@ const yargRoot = require('yargs');
 const debug = require('debug')('gh-index');
 const GitHub = require('./github');
 const HIndex = require('./h-index');
+const makeCache = require('./cache');
 
 const createClient = ({ token, tokenFile }) => {
   let t;
@@ -28,9 +29,10 @@ const createClient = ({ token, tokenFile }) => {
   });
 
   const queue = new TaskQueue(Promise, 8);
+  const cache = makeCache(inst);
   return queue.wrap((o) => {
     debug(o);
-    return inst(o);
+    return cache(o);
   });
 };
 
