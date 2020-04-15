@@ -1,20 +1,32 @@
 {
-  "name": "github-index",
-  "version": "1.1.1",
-  "description": "calculate the h-index, i10-index, and g-index according to repos' stars of github user",
+  "name": "gh-index",
+  "version": "0.0.0",
+  "description": "Calculate h-index of a GitHub user's repo stars",
   "main": "index.js",
-  "author": "flowmemo",
+  "bin": {
+    "gh-index": "./bin/gh-index.js"
+  },
+  "repository": "https://github.com/b1f6c1c4/github-index.git",
+  "keywords": [
+    "h-index",
+    "i10-index",
+    "g-index",
+    "github-stars",
+    "github"
+  ],
+  "author": [
+    "b1f6c1c4 <b1f6c1c4@gmail.com>",
+    "flowmemo"
+  ],
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/flowmemo/github-index.git"
-  },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
-  },
   "dependencies": {
+    "axios": "^0.19.2",
+    "cli-table": "^0.3.1",
+    "cwait": "^1.1.2",
+    "debug": "^4.1.1",
     "h-index": "^1.1.0",
     "isomorphic-fetch": "^2.2.1",
-    "lodash.escaperegexp": "^4.1.2"
+    "lodash.escaperegexp": "^4.1.2",
+    "yargs": "^15.3.1"
   }
 }

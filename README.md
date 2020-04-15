@@ -1,22 +1,26 @@
-# github-index
-calculate the h-index, i10-index, and g-index according to github repos' stars of user
+# gh-index
 
-[![npm](https://img.shields.io/npm/v/github-index.svg?style=flat-square)](https://www.npmjs.com/package/github-index)
+> Calculate h-index of a GitHub user's repo stars
 
-## Usage
-`$ npm install github-index`
+[![npm](https://img.shields.io/npm/v/gh-index.svg?style=flat-square)](https://www.npmjs.com/package/gh-index)
 
-```js
-var ghindex = require('.')
-// this function return a promise
-ghindex('tj').then(res => console.log(res))
-// { sum: 65560, h: 83, i10: 168, repoCount: 241 }
+## TL;DR
+
+```bash
+npm install gh-index
+gh-index b1f6c1c4
+{ sum: xxx, h: xx, i10: xx, g: xx, repoCount: xx, maxStars: xxx }
 ```
 
 ## Note
-It use [github api v3](https://developer.github.com/v3/). The rate limit is 60 requests per hour for unauthenticated requests. See https://developer.github.com/v3/#rate-limiting for details.
 
-Don't take the result too seriously :)
+It use [GitHub Api v3](https://developer.github.com/v3/).
+The rate limit is 60 requests per hour for unauthenticated requests.
+See https://developer.github.com/v3/#rate-limiting for details.
+
+Don't take the results too seriously :)
 
 ## License
-MIT © [flowmemo](http://weibo.com/flowmemo)
+
+* MIT © [b1f6c1c4](http://github.com/b1f6c1c4)
+* MIT © [flowmemo](http://weibo.com/flowmemo)
