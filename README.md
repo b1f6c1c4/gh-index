@@ -7,9 +7,11 @@
 ## TL;DR
 
 ```bash
-npm install gh-index
-gh-index b1f6c1c4
-{ sum: xxx, h: xx, i10: xx, g: xx, repoCount: xx, maxStars: xxx }
+npm i -g gh-index
+gh-index                          # h-index of myself
+gh-index -a                       # other indexes of myself
+gh-index [-a] /friends            # ... of my followers and following
+gh-index [-a] b1f6c1c4 IoriOikawa # ... of some one(s) else
 ```
 
 ## Note

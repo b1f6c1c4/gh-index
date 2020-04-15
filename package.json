@@ -14,19 +14,25 @@
     "github-stars",
     "github"
   ],
+  "scripts": {
+    "lint": "eslint --ignore-path .gitignore ."
+  },
   "author": [
     "b1f6c1c4 <b1f6c1c4@gmail.com>",
     "flowmemo"
   ],
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.19.2",
     "cli-table": "^0.3.1",
-    "cwait": "^1.1.2",
     "debug": "^4.1.1",
     "h-index": "^1.1.0",
     "isomorphic-fetch": "^2.2.1",
     "lodash.escaperegexp": "^4.1.2",
     "yargs": "^15.3.1"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-import": "^2.20.2"
   }
 }
