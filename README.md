@@ -1,7 +1,6 @@
 # github-index
 calculate the h-index, i10-index, and g-index according to github repos' stars of user
 
-[![Travis branch](https://img.shields.io/travis/flowmemo/github-index/master.svg?style=flat-square)](https://travis-ci.org/flowmemo/github-index)
 [![npm](https://img.shields.io/npm/v/github-index.svg?style=flat-square)](https://www.npmjs.com/package/github-index)
 
 ## Usage
