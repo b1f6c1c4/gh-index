@@ -1,6 +1,6 @@
 {
   "name": "gh-index",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Calculate h-index of a GitHub user's repo stars",
   "main": "index.js",
   "bin": {
