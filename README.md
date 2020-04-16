@@ -10,7 +10,10 @@
 npm i -g gh-index
 gh-index                          # h-index of myself
 gh-index -a                       # other indexes of myself
-gh-index [-a] /friends            # ... of my followers and following
+gh-index [-a] /mutual             # ... of my followers intersect following
+gh-index [-a] /friends            # ... of my followers union following
+gh-index [-a] /followers          # ... of my followers
+gh-index [-a] /followings         # ... of my following
 gh-index [-a] b1f6c1c4 IoriOikawa # ... of some one(s) else
 ```
 

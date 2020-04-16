@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const hindex = require('h-index');
 const ss = require('simple-statistics');
 const Table = require('cli-table3');
@@ -20,17 +21,17 @@ class HIndex {
     };
   }
 
-  format(os) {
-    const root = os[0];
-    os.sort((a, b) => b.result.h - a.result.h);
+  format(oos) {
+    const root = oos[0];
+    const os = _.sortBy(oos, ['result.h', 'result.g', 'result.i10', 'result.sum', 'result.maxStar']).reverse();
     const table = new Table({
       head: [
         'Friend of',
         'Username',
         'h-index',
         ...(this.all ? [
-          'i10-index',
           'g-index',
+          'i10-index',
           'Total Repos',
           'Total Stars',
           'Most Stars',
@@ -50,8 +51,8 @@ class HIndex {
         username,
         h,
         ...(this.all ? [
-          i10,
           g,
+          i10,
           repoCount,
           sum,
           maxStar,
@@ -83,8 +84,8 @@ class HIndex {
     return [
       f('h'),
       ...(this.all ? [
-        f('i10'),
         f('g'),
+        f('i10'),
         f('repoCount'),
         f('sum'),
         f('maxStar'),

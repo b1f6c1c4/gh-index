@@ -89,7 +89,7 @@ module.exports = yargRoot
         default: false,
       })
       .positional('who', {
-        describe: 'Github username or \'<username>/friends\'',
+        describe: '<username>{,/mutual,/friends,/followers,/following}',
         type: 'string',
       });
   }, debugging(async (argv) => {
@@ -98,12 +98,34 @@ module.exports = yargRoot
     await github.requires(0);
     let { who } = argv;
     if (!Array.isArray(who)) who = [who];
-    const me = who.includes('/friends') || who.includes(undefined) ? await github.getMe() : undefined;
+    const me = who.includes(undefined)
+      || who.includes('/friends')
+      || who.includes('/followers')
+      || who.includes('/following')
+      ? await github.getMe() : undefined;
     who = who.map((w) => {
-      if (w === undefined) return { username: me, friends: false };
-      if (w === '/friends') return { username: me, friends: true };
-      if (!w.endsWith('/friends')) return { username: w, friends: false };
-      return { username: w.split('/')[0], friends: true };
+      if (w === undefined) return { username: me, friends: [false, false] };
+      const [p, f] = w.split('/');
+      const username = p || me;
+      let friends;
+      switch (f) {
+        case 'mutual':
+          friends = [true, true, true];
+          break;
+        case 'friends':
+          friends = [true, true];
+          break;
+        case 'followers':
+          friends = [true, false];
+          break;
+        case 'following':
+          friends = [false, true];
+          break;
+        default:
+          friends = [false, false];
+          break;
+      }
+      return { username, friends };
     });
     debug(who);
 
@@ -120,16 +142,16 @@ module.exports = yargRoot
 
     const disp = await Promise.all(who.map(async ({ username, friends }) => {
       const s = [{ username }];
-      if (!friends) return dsp(s);
       const [fr, fg] = await Promise.all([
-        github.getFollowers(username),
-        github.getFollowing(username),
+        (friends[0] && github.getFollowers(username)) || [],
+        (friends[1] && github.getFollowing(username)) || [],
       ]);
+      const p = !friends[2] ? _.union(fr, fg) : _.intersection(fr, fg);
       const proc = (f) => f.map((login) => ({
         username: login,
         of: username,
       }));
-      return dsp(s.concat(proc(_.union(fr, fg))));
+      return dsp(s.concat(proc(p)));
     }));
 
     disp.forEach((d) => { console.log(d); });
