@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const yargRoot = require('yargs');
 const debug = require('debug')('gh-index');
+const cliProgress = require('cli-progress');
 const GitHub = require('./github');
 const HIndex = require('./h-index');
 const makeCache = require('./cache');
@@ -31,6 +32,7 @@ const createClient = ({ token, tokenFile }) => {
   const queue = new TaskQueue(Promise, 8);
   const cache = makeCache(inst);
   return queue.wrap((o) => {
+    process.stdout.write('\b');
     debug(o);
     return cache(o);
   });
@@ -129,10 +131,22 @@ module.exports = yargRoot
     });
     debug(who);
 
+    const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+    bar.start(1, 0);
+    let tot = 0;
+    let val = 0;
+    const updateBar = (t, v) => {
+      tot += t;
+      val += v;
+      bar.update(val / tot);
+    };
+
     const dsp = async (lst) => {
       await Promise.all(lst.map(async (o) => {
         const { username } = o;
+        updateBar(1, 0);
         const repos = await github.getRepos(username);
+        updateBar(0, 1);
         Object.assign(o, { result: calc.run(repos) });
         debug(o);
       }));
@@ -142,19 +156,23 @@ module.exports = yargRoot
 
     const disp = await Promise.all(who.map(async ({ username, friends }) => {
       const s = [{ username }];
+      updateBar(2, 0);
       const [fr, fg] = await Promise.all([
         (friends[0] && github.getFollowers(username)) || [],
         (friends[1] && github.getFollowing(username)) || [],
       ]);
+      updateBar(0, 2);
       const p = !friends[2] ? _.union(fr, fg) : _.intersection(fr, fg);
       const proc = (f) => f.map((login) => ({
         username: login,
         of: username,
         relation: (fr.includes(login) ? '<--' : '   ') + (fg.includes(login) ? '-->' : '   '),
       }));
-      return dsp(s.concat(proc(p)));
+      const res = await dsp(s.concat(proc(p)));
+      return res;
     }));
 
+    bar.stop();
     disp.forEach((d) => { console.log(d); });
   }))
   .help()

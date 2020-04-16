@@ -24,6 +24,7 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.19.2",
+    "cli-progress": "^3.7.0",
     "cli-table3": "^0.6.0",
     "cwait": "^1.1.2",
     "debug": "^4.1.1",
