@@ -27,6 +27,7 @@ class HIndex {
     const table = new Table({
       head: [
         'Friend of',
+        'Relation',
         'Username',
         'h-index',
         ...(this.all ? [
@@ -45,9 +46,10 @@ class HIndex {
         'right-mid': '',
       },
     });
-    const pu = ({ username, of, result: { sum, h, i10, g, repoCount, maxRepo, maxStar } }) => {
+    const pu = ({ username, of, relation, result: { sum, h, i10, g, repoCount, maxRepo, maxStar } }) => {
       table.push([
         of,
+        relation,
         username,
         h,
         ...(this.all ? [
@@ -62,14 +64,14 @@ class HIndex {
     };
     os.forEach(pu);
     if (os.length > 1) {
-      table.push([undefined, undefined, ...this.makeSummary(() => undefined, os)]);
-      table.push([undefined, '(Sum.)', ...this.makeSummary(ss.sum, os)]);
-      table.push([undefined, '(Max.)', ...this.makeSummary(ss.max, os)]);
-      table.push([undefined, '(Q3. )', ...this.makeSummary((l) => ss.quantile(l, 0.75), os)]);
-      table.push([undefined, '(Med.)', ...this.makeSummary(ss.median, os)]);
-      table.push([undefined, '(Q1. )', ...this.makeSummary((l) => ss.quantile(l, 0.25), os)]);
-      table.push([undefined, '(Min.)', ...this.makeSummary(ss.min, os)]);
-      table.push([undefined, '(Avg.)', ...this.makeSummary(ss.mean, os)]);
+      table.push([undefined, undefined, undefined, ...this.makeSummary(() => undefined, os)]);
+      table.push([undefined, undefined, '(Sum.)', ...this.makeSummary(ss.sum, os)]);
+      table.push([undefined, undefined, '(Max.)', ...this.makeSummary(ss.max, os)]);
+      table.push([undefined, undefined, '(Q3. )', ...this.makeSummary((l) => ss.quantile(l, 0.75), os)]);
+      table.push([undefined, undefined, '(Med.)', ...this.makeSummary(ss.median, os)]);
+      table.push([undefined, undefined, '(Q1. )', ...this.makeSummary((l) => ss.quantile(l, 0.25), os)]);
+      table.push([undefined, undefined, '(Min.)', ...this.makeSummary(ss.min, os)]);
+      table.push([undefined, undefined, '(Avg.)', ...this.makeSummary(ss.mean, os)]);
       pu(root);
     }
     return table.toString();

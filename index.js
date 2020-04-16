@@ -150,6 +150,7 @@ module.exports = yargRoot
       const proc = (f) => f.map((login) => ({
         username: login,
         of: username,
+        relation: (fr.includes(login) ? '<--' : '   ') + (fg.includes(login) ? '-->' : '   '),
       }));
       return dsp(s.concat(proc(p)));
     }));
