@@ -141,6 +141,7 @@ module.exports = yargRoot
       bar.setTotal(tot += t);
       bar.update(val += v);
     };
+    github.onPagination(updateBar);
 
     const dsp = async (lst) => {
       await Promise.all(lst.map(async (o) => {

@@ -6,6 +6,10 @@ class GitHub {
     this.limit = undefined;
   }
 
+  onPagination(updateBar) {
+    this.updateBar = updateBar;
+  }
+
   static getRestLinks(link) {
     const regex = /(?<=<https:\/\/api\.github\.com)(.*?&page=)([0-9]+)(?=>)/g;
     let m = regex.exec(link);
@@ -41,9 +45,11 @@ class GitHub {
     if (link) {
       debug({ link });
       const restLinks = GitHub.getRestLinks(link);
+      if (this.updateBar) this.updateBar(restLinks.length, 0);
       await this.requires(restLinks.length);
       await Promise.all(restLinks.map(async (l, i) => {
         const { data: d } = await this.run({ method: 'get', url: l });
+        if (this.updateBar) this.updateBar(0, 1);
         pages[1 + i] = d;
       }));
     }
