@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs').promises;
 const { gzip, ungzip } = require('node-gzip');
-const shelljs = require('shelljs');
+const mkdirp = require('mkdirp');
 const debug = require('debug')('gh-index');
 
 let cacheDir = process.env.GH_INDEX_CACHE_DIR;
@@ -9,8 +9,6 @@ if (!cacheDir) cacheDir = '.cache';
 let maxAge = process.env.GH_INDEX_CACHE_AGE;
 if (!maxAge) maxAge = 8 * 60 * 60 * 1000;
 else maxAge = +maxAge;
-
-shelljs.mkdir('-p', cacheDir);
 
 module.exports = (f) => async (req) => {
   if (Object.keys(req).length !== 2) return f(req);
@@ -25,13 +23,14 @@ module.exports = (f) => async (req) => {
       return JSON.parse(b.toString('utf-8'));
     }
   } catch (e) {
-    debug(e);
+    if (e.code !== 'ENOENT') debug(e);
   }
 
   const res = await f(req);
   try {
     const { headers, data } = res;
     const b = await gzip(JSON.stringify({ headers, data }));
+    await mkdirp(cacheDir);
     await fs.writeFile(p, b);
     debug(`Written to cache ${req.url}`);
   } catch (e) {

@@ -6,13 +6,14 @@
   "bin": {
     "gh-index": "./bin/gh-index.js"
   },
-  "repository": "https://github.com/b1f6c1c4/github-index.git",
+  "repository": "https://github.com/b1f6c1c4/gh-index.git",
   "keywords": [
     "h-index",
-    "i10-index",
     "g-index",
+    "i10-index",
+    "github",
     "github-stars",
-    "github"
+    "demographics"
   ],
   "scripts": {
     "lint": "eslint --ignore-path .gitignore ."
@@ -30,8 +31,8 @@
     "debug": "^4.1.1",
     "h-index": "^1.1.0",
     "lodash": "^4.17.15",
+    "mkdirp": "^1.0.4",
     "node-gzip": "^1.1.2",
-    "shelljs": "^0.8.3",
     "simple-statistics": "^7.0.8",
     "yargs": "^15.3.1"
   },
