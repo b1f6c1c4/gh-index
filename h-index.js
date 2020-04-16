@@ -1,4 +1,5 @@
 const hindex = require('h-index');
+const ss = require('simple-statistics');
 const Table = require('cli-table3');
 
 class HIndex {
@@ -20,6 +21,8 @@ class HIndex {
   }
 
   format(os) {
+    const root = os[0];
+    os.sort((a, b) => b.result.h - a.result.h);
     const table = new Table({
       head: [
         'Friend of',
@@ -34,8 +37,14 @@ class HIndex {
           'Most-Star Repo',
         ] : []),
       ],
+      chars: {
+        mid: '',
+        'left-mid': '',
+        'mid-mid': '',
+        'right-mid': '',
+      },
     });
-    os.forEach(({ username, of, result: { sum, h, i10, g, repoCount, maxRepo, maxStar } }) => {
+    const pu = ({ username, of, result: { sum, h, i10, g, repoCount, maxRepo, maxStar } }) => {
       table.push([
         of,
         username,
@@ -49,8 +58,39 @@ class HIndex {
           maxRepo,
         ] : []),
       ]);
-    });
+    };
+    os.forEach(pu);
+    if (os.length > 1) {
+      table.push([undefined, undefined, ...this.makeSummary(() => undefined, os)]);
+      table.push([undefined, '(Sum.)', ...this.makeSummary(ss.sum, os)]);
+      table.push([undefined, '(Max.)', ...this.makeSummary(ss.max, os)]);
+      table.push([undefined, '(Q3. )', ...this.makeSummary((l) => ss.quantile(l, 0.75), os)]);
+      table.push([undefined, '(Med.)', ...this.makeSummary(ss.median, os)]);
+      table.push([undefined, '(Q1. )', ...this.makeSummary((l) => ss.quantile(l, 0.25), os)]);
+      table.push([undefined, '(Min.)', ...this.makeSummary(ss.min, os)]);
+      table.push([undefined, '(Avg.)', ...this.makeSummary(ss.mean, os)]);
+      pu(root);
+    }
     return table.toString();
+  }
+
+  makeSummary(fun, os) {
+    const f = (field) => {
+      const r = fun(os.map((o) => o.result[field]));
+      if (r === undefined) return r;
+      return Math.round(r * 100) / 100;
+    };
+    return [
+      f('h'),
+      ...(this.all ? [
+        f('i10'),
+        f('g'),
+        f('repoCount'),
+        f('sum'),
+        f('maxStar'),
+        undefined,
+      ] : []),
+    ];
   }
 }
 

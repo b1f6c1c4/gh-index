@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const os = require('os');
 const axios = require('axios');
 const { TaskQueue } = require('cwait');
@@ -24,7 +25,6 @@ const createClient = ({ token, tokenFile }) => {
   const inst = axios.create({
     method: 'get',
     baseURL: 'https://api.github.com/',
-    timeout: 10000,
     headers: t ? { Authorization: `token ${t}` } : undefined,
   });
 
@@ -107,9 +107,20 @@ module.exports = yargRoot
     });
     debug(who);
 
-    who = (await Promise.all(who.map(async ({ username, friends }) => {
+    const dsp = async (lst) => {
+      await Promise.all(lst.map(async (o) => {
+        const { username } = o;
+        const repos = await github.getRepos(username);
+        Object.assign(o, { result: calc.run(repos) });
+        debug(o);
+      }));
+      if (argv.json) return JSON.stringify(lst, null, 2);
+      return calc.format(lst);
+    };
+
+    const disp = await Promise.all(who.map(async ({ username, friends }) => {
       const s = [{ username }];
-      if (!friends) return s;
+      if (!friends) return dsp(s);
       const [fr, fg] = await Promise.all([
         github.getFollowers(username),
         github.getFollowing(username),
@@ -118,21 +129,10 @@ module.exports = yargRoot
         username: login,
         of: username,
       }));
-      return s.concat(proc(fr), proc(fg));
-    }))).reduce((ws, w) => ws.concat(w), []);
-    debug(who);
-
-    await Promise.all(who.map(async (o) => {
-      const { username } = o;
-      const repos = await github.getRepos(username);
-      Object.assign(o, { result: calc.run(repos) });
-      debug(o);
+      return dsp(s.concat(proc(_.union(fr, fg))));
     }));
 
-    who.sort((a, b) => a.h - b.h);
-
-    if (argv.json) console.log(JSON.stringify(who, null, 2));
-    else console.log(calc.format(who));
+    disp.forEach((d) => { console.log(d); });
   }))
   .help()
   .parse;
