@@ -15,12 +15,13 @@ const createClient = ({ token, tokenFile }) => {
   let t;
   if (token) {
     t = token;
-  }
-  try {
-    t = fs.readFileSync(tokenFile, 'utf-8').trim();
-  } catch (e) {
-    debug(`Warning: can't read token file ${tokenFile}.`);
-    debug('Proceed in unauthorized mode.');
+  } else if (tokenFile) {
+    try {
+      t = fs.readFileSync(tokenFile, 'utf-8').trim();
+    } catch (e) {
+      debug(`Warning: can't read token file ${tokenFile}.`);
+      debug('Proceed in unauthorized mode.');
+    }
   }
 
   const inst = axios.create({
@@ -32,7 +33,6 @@ const createClient = ({ token, tokenFile }) => {
   const queue = new TaskQueue(Promise, 8);
   const cache = makeCache(inst);
   return queue.wrap((o) => {
-    process.stdout.write('\b');
     debug(o);
     return cache(o);
   });
@@ -61,7 +61,6 @@ module.exports = yargRoot
     describe: 'Github token for full control of private repos, see https://github.com/settings/tokens',
     type: 'string',
   })
-  .conflicts('t', 'token-file')
   .command(['show-limit', '$0'], 'Show GitHub API usage and limit', () => {}, debugging(async (argv) => {
     const github = new GitHub(createClient(argv));
     const { data } = await github.getRateLimit();
@@ -131,14 +130,15 @@ module.exports = yargRoot
     });
     debug(who);
 
-    const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+    const bar = new cliProgress.SingleBar({
+      etaBuffer: 30,
+    }, cliProgress.Presets.shades_classic);
     bar.start(1, 0);
-    let tot = 0;
+    let tot = 1;
     let val = 0;
     const updateBar = (t, v) => {
-      tot += t;
-      val += v;
-      bar.update(val / tot);
+      bar.setTotal(tot += t);
+      bar.update(val += v);
     };
 
     const dsp = async (lst) => {
@@ -172,6 +172,7 @@ module.exports = yargRoot
       return res;
     }));
 
+    updateBar(0, 1);
     bar.stop();
     disp.forEach((d) => { console.log(d); });
   }))
