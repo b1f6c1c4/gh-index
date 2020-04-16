@@ -5,7 +5,7 @@ const mkdirp = require('mkdirp');
 const debug = require('debug')('gh-index');
 
 let cacheDir = process.env.GH_INDEX_CACHE_DIR;
-if (!cacheDir) cacheDir = '.cache';
+if (!cacheDir) cacheDir = path.join(process.env.HOME, '.cache', 'gh-index');
 let maxAge = process.env.GH_INDEX_CACHE_AGE;
 if (!maxAge) maxAge = 8 * 60 * 60 * 1000;
 else maxAge = +maxAge;

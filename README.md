@@ -56,6 +56,9 @@ It use [GitHub Api v3](https://developer.github.com/v3/).
 The rate limit is 60 requests per hour for unauthenticated requests.
 See https://developer.github.com/v3/#rate-limiting for details.
 
+API call results are cached to `$GH_INDEX_CACHE_DIR`, which is `$HOME/.cache/gh-index` by default.
+Cache is valid for `$GH_INDEX_CACHE_AGE`, which is `28800000` (8hr) by default.
+
 Don't take the results too seriously :)
 
 ## License

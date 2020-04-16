@@ -100,6 +100,7 @@ module.exports = yargRoot
     let { who } = argv;
     if (!Array.isArray(who)) who = [who];
     const me = who.includes(undefined)
+      || who.includes('/mutual')
       || who.includes('/friends')
       || who.includes('/followers')
       || who.includes('/following')
